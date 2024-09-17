@@ -1,24 +1,72 @@
-from main import BooksCollector
+import pytest
 
-# класс TestBooksCollector объединяет набор тестов, которыми мы покрываем наше приложение BooksCollector
-# обязательно указывать префикс Test
 class TestBooksCollector:
 
-    # пример теста:
-    # обязательно указывать префикс test_
-    # дальше идет название метода, который тестируем add_new_book_
-    # затем, что тестируем add_two_books - добавление двух книг
-    def test_add_new_book_add_two_books(self):
-        # создаем экземпляр (объект) класса BooksCollector
-        collector = BooksCollector()
+    def test_add_new_book_add_one_book(self, collector):
 
-        # добавляем две книги
-        collector.add_new_book('Гордость и предубеждение и зомби')
-        collector.add_new_book('Что делать, если ваш кот хочет вас убить')
+        collector.add_new_book('Снафф')
+        assert len(collector.books_genre) == 1
 
-        # проверяем, что добавилось именно две
-        # словарь books_rating, который нам возвращает метод get_books_rating, имеет длину 2
-        assert len(collector.get_books_rating()) == 2
+    def test_add_new_book_genre_is_empty(self, collector):
 
-    # напиши свои тесты ниже
-    # чтобы тесты были независимыми в каждом из них создавай отдельный экземпляр класса BooksCollector()
+        collector.add_new_book('Снафф')
+        assert collector.books_genre.get('Снафф') == ''
+
+    def test_set_book_genre_set_genre(self, collector):
+
+        collector.add_new_book('Хребты безумия')
+        collector.set_book_genre('Хребты безумия', 'Ужасы')
+        assert collector.books_genre.get('Хребты безумия') is not None
+
+
+    def test_get_book_genre_get_genre(self, collector):
+
+        collector.add_new_book('Хребты безумия')
+        collector.set_book_genre('Хребты безумия', 'Ужасы')
+        assert collector.get_book_genre('Хребты безумия') == 'Ужасы'
+
+    def test_get_books_with_specific_genre_get_book(self, collector):
+
+        collector.add_new_book("Дюк, Виски и Малой")
+        collector.set_book_genre("Дюк, Виски и Малой", "Комедии")
+        book_list = collector.get_books_with_specific_genre("Комедии")
+        assert "Дюк, Виски и Малой" in book_list
+
+    def test_get_books_for_children_add_book_in_list(self, collector):
+
+        collector.add_new_book("Дюк, Виски и Малой")
+        collector.set_book_genre("Дюк, Виски и Малой", "Комедии")
+        book_not_for_children = collector.get_books_for_children()
+        assert len(book_not_for_children) == 1
+
+    @pytest.mark.parametrize("name,genre",
+                             [
+                                 ("Дюк, Виски и Малой", "Комедии"),
+                                 ("Хребты безумия", "Ужасы")
+                             ]
+                             )
+    def test_get_books_for_children_book_horror_do_not_add_in_list(self, collector, name, genre):
+
+        collector.add_new_book(name)
+        collector.set_book_genre(name, genre)
+        book_for_children = collector.get_books_for_children()
+        assert "Хребты безумия" not in book_for_children
+
+    def test_add_book_in_favorites_add_one_book(self, collector):
+
+        collector.add_new_book("Дюк, Виски и Малой")
+        collector.add_book_in_favorites("Дюк, Виски и Малой")
+        assert"Дюк, Виски и Малой" in collector.favorites
+
+    def test_delete_book_from_favorites(self, collector):
+
+        collector.add_new_book("Дюк, Виски и Малой")
+        collector.add_book_in_favorites("Дюк, Виски и Малой")
+        collector.delete_book_from_favorites("Дюк, Виски и Малой")
+        assert "Дюк, Виски и Малой" not in collector.favorites
+
+
+    def test_get_list_of_favorites_books_is_list(self, collector):
+
+        fav_books = collector.get_list_of_favorites_books()
+        assert isinstance(fav_books, list)
